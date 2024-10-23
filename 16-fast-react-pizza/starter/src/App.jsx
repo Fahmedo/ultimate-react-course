@@ -1,13 +1,16 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+
 import Home from './ui/Home';
+import Error from './ui/Error';
 import Menu, { loader as menuLoader } from './features/menu/Menu';
-import Order, { loader as orderLoader } from './features/order/Order';
 import Cart from './features/cart/Cart';
 import CreateOrder, {
   action as createOrderAction,
 } from './features/order/CreateOrder';
+import Order, { loader as orderLoader } from './features/order/Order';
 import AppLayout from './ui/AppLayout';
-import Error from './ui/Error';
+import { action as UpdateorderAction } from './features/order/UpdateOrder';
+
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
@@ -31,6 +34,7 @@ const router = createBrowserRouter([
         element: <Order />,
         loader: orderLoader, // this is the loader data fetcher created in this component
         errorElement: <Error />,
+        action: UpdateorderAction, // this is an action use in handle form data in a component
       },
     ],
   },
