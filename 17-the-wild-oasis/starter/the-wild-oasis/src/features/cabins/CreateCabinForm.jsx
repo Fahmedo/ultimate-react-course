@@ -1,78 +1,125 @@
-import styled from "styled-components";
+import Input from '../../ui/Input';
+import Form from '../../ui/Form';
+import Button from '../../ui/Button';
+import FileInput from '../../ui/FileInput';
+import Textarea from '../../ui/Textarea';
+import { useForm } from 'react-hook-form';
+import FormRow from '../../ui/FormRow';
+import { useCreateCabin } from './useCreateCabin';
+import { useEditCabin } from './useEditCabin';
 
-import Input from "../../ui/Input";
-import Form from "../../ui/Form";
-import Button from "../../ui/Button";
-import FileInput from "../../ui/FileInput";
-import Textarea from "../../ui/Textarea";
+function CreateCabinForm({ cabinToEdit = {} }) {
+  const { isCreating, createCabin } = useCreateCabin();
+  const { isEditing, editCabin } = useEditCabin();
+  const { id: editId, ...editValues } = cabinToEdit;
+  const isEditSession = Boolean(editId);
 
-const FormRow = styled.div`
-  display: grid;
-  align-items: center;
-  grid-template-columns: 24rem 1fr 1.2fr;
-  gap: 2.4rem;
+  const isWorking = isCreating || isEditing;
 
-  padding: 1.2rem 0;
+  const { register, handleSubmit, reset, formState, getValues } = useForm({
+    defaultValues: isEditSession ? editValues : {},
+  });
+  const { errors } = formState;
 
-  &:first-child {
-    padding-top: 0;
+  function onSubmit(data) {
+    // check if a new images is uploaded or still previous image
+    const image = typeof data.image === 'string' ? data.image : data.image[0];
+
+    if (isEditSession)
+      editCabin(
+        {
+          newCabinData: {
+            ...data,
+            image,
+          },
+          id: editId,
+        },
+        {
+          onSuccess: () => reset(),
+        }
+      );
+    else
+      createCabin(
+        { ...data, image: image },
+        {
+          onSuccess: () => reset(),
+        }
+      );
   }
 
-  &:last-child {
-    padding-bottom: 0;
-  }
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--color-grey-100);
-  }
-
-  &:has(button) {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1.2rem;
-  }
-`;
-
-const Label = styled.label`
-  font-weight: 500;
-`;
-
-const Error = styled.span`
-  font-size: 1.4rem;
-  color: var(--color-red-700);
-`;
-
-function CreateCabinForm() {
+  // function onError(errors) {
+  //   console.log(errors);
+  // }
   return (
-    <Form>
-      <FormRow>
-        <Label htmlFor="name">Cabin name</Label>
-        <Input type="text" id="name" />
+    <Form onSubmit={handleSubmit(onSubmit)}>
+      <FormRow label="Cabin name" error={errors?.name?.message}>
+        <Input
+          type="text"
+          id="name"
+          disabled={isWorking}
+          {...register('name', { required: 'This filed is required' })}
+        />
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="maxCapacity">Maximum capacity</Label>
-        <Input type="number" id="maxCapacity" />
+      <FormRow label="Maximum capacity" error={errors?.max_capacity?.message}>
+        <Input
+          type="number"
+          id="max_capacity"
+          disabled={isWorking}
+          {...register('max_capacity', {
+            required: 'This filed is required',
+            min: {
+              value: 1,
+              message: 'Capacity should not be less than 1',
+            },
+          })}
+        />
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="regularPrice">Regular price</Label>
-        <Input type="number" id="regularPrice" />
+      <FormRow label="Regular price" error={errors?.regularPrice?.message}>
+        <Input
+          type="number"
+          disabled={isWorking}
+          id="regular_price"
+          {...register('regular_price', { required: 'This filed is required' })}
+        />
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="discount">Discount</Label>
-        <Input type="number" id="discount" defaultValue={0} />
+      <FormRow label="discount" error={errors?.discount?.message}>
+        <Input
+          type="number"
+          id="discount"
+          disabled={isWorking}
+          defaultValue={0}
+          {...register('discount', {
+            required: 'This filed is required',
+            validate: (value) =>
+              value <= getValues().regular_price ||
+              'Discount can not be higher than regular price',
+          })}
+        />
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="description">Description for website</Label>
-        <Textarea type="number" id="description" defaultValue="" />
+      <FormRow
+        label="Description for website"
+        error={errors?.description?.message}
+      >
+        <Textarea
+          type="number"
+          id="description"
+          defaultValue=""
+          {...register('description', { required: 'This filed is required' })}
+        />
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="image">Cabin photo</Label>
-        <FileInput id="image" accept="image/*" />
+      <FormRow label="Cabin photo">
+        <FileInput
+          id="image"
+          accept="image/*"
+          {...register('image', {
+            required: isEditSession ? false : 'This filed is required',
+          })}
+        />
       </FormRow>
 
       <FormRow>
@@ -80,7 +127,9 @@ function CreateCabinForm() {
         <Button variation="secondary" type="reset">
           Cancel
         </Button>
-        <Button>Edit cabin</Button>
+        <Button disabled={isWorking}>
+          {isEditSession ? 'Edit Cabin ' : 'Create new cabin'}
+        </Button>
       </FormRow>
     </Form>
   );

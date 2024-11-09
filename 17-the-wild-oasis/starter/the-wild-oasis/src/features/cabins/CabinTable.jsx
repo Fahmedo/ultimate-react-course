@@ -1,4 +1,8 @@
-import styled from "styled-components";
+/* eslint-disable no-unused-vars */
+import styled from 'styled-components';
+import Spinner from '../../ui/Spinner';
+import CabinRow from './CabinRow';
+import { useCabins } from './useCabins';
 
 const Table = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -23,3 +27,25 @@ const TableHeader = styled.header`
   color: var(--color-grey-600);
   padding: 1.6rem 2.4rem;
 `;
+//Step 2:  in order to use react query to fetch and cache our datas, we use a function called useQuery which has array of response from react query including isloadig now (isPending), error and the data itself. to infom react query which api it want to make call from and what key we want to use to recognise the data, useQuery takes in a queryKey and queryFn the key takes the name and the function take a asynchronous function which we created in our servuce already.
+function CabinTable() {
+  const { isLoading, cabins, error } = useCabins();
+  if (isLoading) return <Spinner />;
+  return (
+    <Table role="table">
+      <TableHeader role="row">
+        <div></div>
+        <div>Cabin</div>
+        <div>Capacity</div>
+        <div>Price</div>
+        <div>Discount</div>
+        <div></div>
+      </TableHeader>
+      {cabins.map((cabin) => (
+        <CabinRow cabin={cabin} key={cabin.id} />
+      ))}
+    </Table>
+  );
+}
+
+export default CabinTable;

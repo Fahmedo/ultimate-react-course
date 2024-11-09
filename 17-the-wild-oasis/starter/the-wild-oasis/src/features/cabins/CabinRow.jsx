@@ -1,5 +1,10 @@
-import styled from "styled-components";
-
+import styled from 'styled-components';
+import { formatCurrency } from '../../utils/helpers';
+import { useDeleteCabin } from './useDeleteCabin';
+import { useCreateCabin } from './useCreateCabin';
+import { useState } from 'react';
+import CreateCabinForm from './CreateCabinForm';
+import { HiPencil, HiSquare2Stack, HiTrash } from 'react-icons/hi2';
 const TableRow = styled.div`
   display: grid;
   grid-template-columns: 0.6fr 1.8fr 2.2fr 1fr 1fr 1fr;
@@ -25,16 +30,67 @@ const Cabin = styled.div`
   font-size: 1.6rem;
   font-weight: 600;
   color: var(--color-grey-600);
-  font-family: "Sono";
+  font-family: 'Sono';
 `;
 
 const Price = styled.div`
-  font-family: "Sono";
+  font-family: 'Sono';
   font-weight: 600;
 `;
 
 const Discount = styled.div`
-  font-family: "Sono";
+  font-family: 'Sono';
   font-weight: 500;
   color: var(--color-green-700);
 `;
+function CabinRow({ cabin }) {
+  const [showForm, setShowForm] = useState(false);
+  const { deleteCabin, isDeleting } = useDeleteCabin();
+  const { isCreating, createCabin } = useCreateCabin();
+  const {
+    id: cabinId,
+    name,
+    max_capacity,
+    regular_price,
+    discount,
+    image,
+  } = cabin;
+  function handleDuplicate() {
+    createCabin({
+      name: `Copy of ${name}`,
+      max_capacity,
+      regular_price,
+      discount,
+      image,
+    });
+  }
+  return (
+    <>
+      <TableRow role="row">
+        <Img src={image} alt="" />
+        <Cabin>{name}</Cabin>
+        <div>Fits up to {max_capacity} Guests</div>
+        <Price>{formatCurrency(regular_price)}</Price>
+        {discount ? (
+          <Discount>{formatCurrency(discount)}</Discount>
+        ) : (
+          <span>&mdash;</span>
+        )}
+        <div>
+          <button onClick={() => handleDuplicate()} disabled={isCreating}>
+            <HiSquare2Stack />
+          </button>
+          <button onClick={() => setShowForm((show) => !show)}>
+            <HiPencil />
+          </button>
+          <button onClick={() => deleteCabin(cabinId)} disabled={isDeleting}>
+            <HiTrash />
+          </button>
+        </div>
+      </TableRow>
+      {showForm && <CreateCabinForm cabinToEdit={cabin} />}
+    </>
+  );
+}
+
+export default CabinRow;
